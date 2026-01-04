@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { CartItem } from '../types';
 
 interface CartModalProps {
@@ -7,12 +7,21 @@ interface CartModalProps {
   onClose: () => void;
   onRemove: (id: string) => void;
   onUpdateQty: (id: string, delta: number) => void;
+  onCheckout: () => Promise<void>;
 }
 
-const CartModal: React.FC<CartModalProps> = ({ items, onClose, onRemove, onUpdateQty }) => {
+const CartModal: React.FC<CartModalProps> = ({ items, onClose, onRemove, onUpdateQty, onCheckout }) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+  
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const tax = subtotal * 0.08;
   const total = subtotal + tax;
+
+  const handleCheckoutClick = async () => {
+    setIsProcessing(true);
+    await onCheckout();
+    setIsProcessing(false);
+  };
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
@@ -97,11 +106,24 @@ const CartModal: React.FC<CartModalProps> = ({ items, onClose, onRemove, onUpdat
               <span>Total</span>
               <span className="text-amber-900">${total.toFixed(2)}</span>
             </div>
-            <button className="w-full py-4 mt-4 bg-amber-800 hover:bg-amber-900 text-white rounded-2xl font-bold text-lg shadow-lg shadow-amber-900/20 transition-all transform active:scale-95">
-              Place My Order
+            <button 
+              onClick={handleCheckoutClick}
+              disabled={isProcessing}
+              className={`w-full py-4 mt-4 text-white rounded-2xl font-bold text-lg shadow-lg shadow-amber-900/20 transition-all transform active:scale-95 flex items-center justify-center space-x-3 ${
+                isProcessing ? 'bg-amber-700 cursor-not-allowed' : 'bg-amber-800 hover:bg-amber-900'
+              }`}
+            >
+              {isProcessing ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <span>Place My Order</span>
+              )}
             </button>
             <p className="text-center text-[10px] text-stone-400 uppercase tracking-widest mt-4">
-              <i className="fas fa-shield-alt mr-1"></i> Secure Checkout at Sameer's
+              <i className="fas fa-shield-alt mr-1"></i> Secure Checkout • Firestore Connected
             </p>
           </div>
         )}

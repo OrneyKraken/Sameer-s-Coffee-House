@@ -1,20 +1,20 @@
 
 import React, { useState } from 'react';
-import { MENU_ITEMS } from '../constants';
 import { MenuItem } from '../types';
 
 interface MenuSectionProps {
   onAddToCart: (item: MenuItem) => void;
+  menuItems: MenuItem[];
 }
 
-const MenuSection: React.FC<MenuSectionProps> = ({ onAddToCart }) => {
+const MenuSection: React.FC<MenuSectionProps> = ({ onAddToCart, menuItems }) => {
   const [activeCategory, setActiveCategory] = useState<string>('All');
   
   const categories = ['All', 'Hot Coffee', 'Cold Coffee', 'Tea', 'Pastries'];
   
   const filteredItems = activeCategory === 'All' 
-    ? MENU_ITEMS 
-    : MENU_ITEMS.filter(item => item.category === activeCategory);
+    ? menuItems 
+    : menuItems.filter(item => item.category === activeCategory);
 
   return (
     <section className="py-12 bg-stone-50 min-h-screen">

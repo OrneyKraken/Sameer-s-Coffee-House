@@ -1,9 +1,14 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { baristaChat } from '../services/geminiService';
-import { ChatMessage } from '../types';
+import { ChatMessage, MenuItem } from '../types';
 
-const BaristaAI: React.FC = () => {
+// Define props to match what is being passed from App.tsx
+interface BaristaAIProps {
+  menuItems: MenuItem[];
+}
+
+const BaristaAI: React.FC<BaristaAIProps> = ({ menuItems }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'model', text: 'Hello! Welcome to Sameer\'s Coffee Shop. I\'m your digital barista. Ask me anything about our coffee, brewing methods, or for a recommendation based on your mood!' }
   ]);
@@ -26,7 +31,8 @@ const BaristaAI: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await baristaChat(messages, userMsg);
+      // Pass menuItems to the baristaChat service to ensure the AI has the current menu context
+      const response = await baristaChat(messages, userMsg, menuItems);
       setMessages(prev => [...prev, { role: 'model', text: response }]);
     } catch (error) {
       setMessages(prev => [...prev, { role: 'model', text: "I'm sorry, I'm having trouble connecting to the roast master. Please try again later!" }]);

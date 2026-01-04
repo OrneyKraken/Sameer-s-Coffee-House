@@ -2,13 +2,13 @@
 import React, { useState } from 'react';
 import { getCoffeeRecommendation } from '../services/geminiService';
 import { MenuItem } from '../types';
-import { MENU_ITEMS } from '../constants';
 
 interface RecommenderAIProps {
   onAddToCart: (item: MenuItem) => void;
+  menuOverride: MenuItem[];
 }
 
-const RecommenderAI: React.FC<RecommenderAIProps> = ({ onAddToCart }) => {
+const RecommenderAI: React.FC<RecommenderAIProps> = ({ onAddToCart, menuOverride }) => {
   const [mood, setMood] = useState('');
   const [recommendation, setRecommendation] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -17,13 +17,17 @@ const RecommenderAI: React.FC<RecommenderAIProps> = ({ onAddToCart }) => {
     if (!mood) return;
     setLoading(true);
     try {
-      const result = await getCoffeeRecommendation(mood);
-      const menuItem = MENU_ITEMS.find(i => i.name === result.name);
+      // Pass the current menu items to the recommendation engine
+      const result = await getCoffeeRecommendation(mood, menuOverride);
+      const menuItem = menuOverride.find(i => i.name === result.name);
       if (menuItem) {
         setRecommendation({ ...result, item: menuItem });
+      } else {
+        // Fallback to the first available item if the AI provides an inexact name
+        setRecommendation({ ...result, item: menuOverride[0] });
       }
     } catch (error) {
-      console.error(error);
+      console.error("Recommendation error:", error);
     } finally {
       setLoading(false);
     }
@@ -38,7 +42,7 @@ const RecommenderAI: React.FC<RecommenderAIProps> = ({ onAddToCart }) => {
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="flex-1">
               <h2 className="text-3xl font-bold text-amber-900 mb-4">Coffee for your Mood</h2>
-              <p className="text-stone-600 mb-8">Not sure what to order? Tell our AI how you're feeling and we'll suggest the perfect cup.</p>
+              <p className="text-stone-600 mb-8">Not sure what to order? Tell our AI how you're feeling and we'll suggest the perfect cup from our live database.</p>
               
               <div className="flex flex-wrap gap-2 mb-6">
                 {moods.map(m => (
